@@ -61,3 +61,6 @@ Icon?
 config.local.*
 .env
 .env.local
+
+# Runtime generated files
+memory.json
