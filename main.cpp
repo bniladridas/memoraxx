@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <deque>
 #include <fstream>
+#include <algorithm> // For std::min, std::transform
+#include <sys/resource.h> // For CPU usage
 
 using json = nlohmann::json;
 
@@ -35,6 +37,21 @@ struct Interaction {
     std::string prompt;
     std::string response;
 };
+
+// Compute Levenshtein distance for fuzzy matching
+int levenshtein_distance(const std::string& s1, const std::string& s2) {
+    const size_t len1 = s1.size(), len2 = s2.size();
+    std::vector<std::vector<int>> dp(len1 + 1, std::vector<int>(len2 + 1, 0));
+    for (size_t i = 0; i <= len1; ++i) dp[i][0] = i;
+    for (size_t j = 0; j <= len2; ++j) dp[0][j] = j;
+    for (size_t i = 1; i <= len1; ++i) {
+        for (size_t j = 1; j <= len2; ++j) {
+            int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+            dp[i][j] = std::min({dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost});
+        }
+    }
+    return dp[len1][len2];
+}
 
 class LlamaStack {
 private:
@@ -235,7 +252,13 @@ int main() {
                 std::cout << "Please enter a non-empty prompt.\n";
                 continue;
             }
-            if (user_message == "exit" || user_message == "quit") {
+
+            // Convert input to lowercase for command matching
+            std::string input_lower = user_message;
+            std::transform(input_lower.begin(), input_lower.end(), input_lower.begin(), ::tolower);
+
+            // Fuzzy matching for commands
+            if (levenshtein_distance(input_lower, "exit") <= 2 || input_lower == "exit") {
                 std::cout << "[Memoraxx: shutting down";
                 for (int i = 0; i < 3; ++i) {
                     std::cout << "." << std::flush;
@@ -244,8 +267,23 @@ int main() {
                 std::cout << "]\nExiting. Goodbye!\n";
                 break;
             }
-            if (user_message == "clear") {
+            if (levenshtein_distance(input_lower, "quit") <= 2 || input_lower == "quit") {
+                std::cout << "[Memoraxx: shutting down";
+                for (int i = 0; i < 3; ++i) {
+                    std::cout << "." << std::flush;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+                }
+                std::cout << "]\nExiting. Goodbye!\n";
+                break;
+            }
+            if (levenshtein_distance(input_lower, "clear") <= 2 || input_lower == "clear") {
                 llama.clear_memory();
+                continue;
+            }
+
+            // Suggest commands for unrecognized input
+            if (levenshtein_distance(input_lower, "exit") <= 3 || levenshtein_distance(input_lower, "quit") <= 3 || levenshtein_distance(input_lower, "clear") <= 3) {
+                std::cout << "Did you mean 'exit', 'quit', or 'clear'? Try again.\n";
                 continue;
             }
 
@@ -274,13 +312,19 @@ int main() {
             std::string current_time = std::ctime(&now);
             current_time = current_time.substr(0, current_time.length() - 1);
 
+            // CPU usage
+            struct rusage usage;
+            getrusage(RUSAGE_SELF, &usage);
+            double cpu_usage = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000.0 +
+                               (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1000.0;
+
             std::cout << "\n--- AI Response ---\n" << response << "\n-------------------\n";
             std::cout << "[Memoraxx: brain active";
             for (int i = 0; i < 3; ++i) {
                 std::cout << "." << std::flush;
                 std::this_thread::sleep_for(std::chrono::milliseconds(300));
             }
-            std::cout << "]\n[" << current_time << ", took " << duration.count() << "s]\n";
+            std::cout << "]\n[" << current_time << ", took " << duration.count() << "s, CPU usage: " << cpu_usage << " ms]\n";
         }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

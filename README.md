@@ -1,52 +1,85 @@
-# Llama C++ Terminal Client
+# Memoraxx
 
-<div style="text-align: center; font-size: 2.5rem;">
-  💚
-</div>
-<div style="text-align: center;">
-  <img src="https://img.shields.io/badge/Llama-AI-brightgreen" alt="Llama Badge">
-  <img src="https://img.shields.io/badge/C++-Programming-blue" alt="C++ Badge">
-  <img src="https://img.shields.io/badge/Memory-Context-orange" alt="Memory Badge">
-  <img src="https://img.shields.io/github/issues-pr/bniladridas/cpp_terminal_app?label=Pull%20Requests&color=yellow" alt="Pull Requests">
-  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen" alt="PRs Welcome">
-</div>
+A C++ terminal client for interacting with a local Llama-based AI language model server, featuring context-aware conversations with memory persistence and performance metrics.
 
-> **IMPORTANT**: Log in to the [New Google Cloud Communities](https://security.googlecloudcommunity.com/members/niladridas-404568) to keep your profile.
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bniladridas/Memoraxx)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/std/the-standard)
 
-C++ client for local Llama 3.2 with memory capabilities for context-aware responses and performance metrics.
+## Overview
 
-```cpp
-LlamaStack llama("http://localhost:11434/api/generate", "llama3.2", 5, "memory.json");
-std::string response = llama.completion("Hello");
-```
+Memoraxx is a lightweight, terminal-based application designed to interact with a local Llama 3.2 model server (via Ollama). It sends user prompts to the server, maintains conversational context using a memory system, and reports CPU usage and response times for each interaction. Key features include:
 
-## Features
-- **Context-Aware Responses**: Stores up to 5 recent prompt-response pairs (configurable) to maintain conversation context.
-- **Persistent Memory**: Saves interactions to `memory.json` for cross-session continuity.
-- **User Commands**: Type `clear` to reset memory, or `exit`/`quit` to close the app.
-- **Performance Metrics**: Displays CPU usage and response time.
-- **Robust Error Handling**: Manages cURL and JSON errors gracefully.
+- **Context-Aware Responses**: Stores up to 5 recent prompt-response pairs in memory, persisted to `memory.json` for cross-session continuity.
+- **Performance Metrics**: Measures CPU usage (`getrusage`) and response duration for each query.
+- **User-Friendly Interface**: Supports commands like `exit`, `quit`, and `clear` with fuzzy matching for typos (e.g., `quite` → `quit`).
+- **Robust JSON Handling**: Uses `nlohmann/json` for reliable API communication.
 
-## Documentation
+The project is actively developed on the `main` branch, with an `optimize-algorithm` branch exploring performance enhancements. Contributions are welcome at [github.com/bniladridas/Memoraxx](https://github.com/bniladridas/Memoraxx).
 
-[Setup](doc/README.md) | [Architecture](doc/ARCHITECTURE.md) | [API](doc/API.md) | [Examples](doc/EXAMPLES.md)
-
-## Quick Start
+## Installation
 
 ### Prerequisites
-- C++17
-- CMake
-- `libcurl` (`sudo apt-get install libcurl4-openssl-dev` or `brew install curl`)
-- `nlohmann/json` (`sudo apt-get install nlohmann-json3-dev` or download from [GitHub](https://github.com/nlohmann/json))
-- Ollama with Llama 3.2 running locally (`ollama serve`)
+- **OS**: macOS (tested on Sequoia with AppleClang 16.0.0), Linux (Ubuntu 20.04+)
+- **Dependencies**:
+  - `libcurl` (e.g., `libcurl4-openssl-dev` on Ubuntu, included in macOS SDK)
+  - `nlohmann/json` (version ≥3.10)
+  - CMake (version ≥3.10)
+  - C++17 compiler (e.g., AppleClang, GCC)
+  - Ollama with Llama 3.2 model
+- **Optional**: `libomp` for future parallel processing (not currently required)
 
-### Build
-```bash
-cmake -S . -B build && cmake --build build
-ollama serve && ./build/LlamaTerminalApp
-```
+### Setup
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/bniladridas/Memoraxx.git
+   cd Memoraxx
+   ```
 
-### Output
+2. **Install Dependencies** (macOS):
+   ```bash
+   brew install curl nlohmann-json
+   ```
+
+   On Ubuntu:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install libcurl4-openssl-dev nlohmann-json3-dev cmake build-essential
+   ```
+
+3. **Install Ollama**:
+   Follow instructions at [ollama.ai](https://ollama.ai) and pull the Llama 3.2 model:
+   ```bash
+   ollama pull llama3.2
+   ```
+
+4. **Build the Project**:
+   ```bash
+   mkdir build && cd build
+   cmake ..
+   cmake --build .
+   ```
+
+## Usage
+
+1. **Start the Ollama Server**:
+   ```bash
+   ollama serve
+   ```
+
+2. **Run Memoraxx**:
+   ```bash
+   ./build/Memoraxx
+   ```
+
+3. **Interact**:
+   - Enter prompts at the `>` cursor.
+   - Use commands:
+     - `exit` or `quit`: Exit the application.
+     - `clear`: Reset conversation memory.
+   - Typos are handled (e.g., `quite` → `quit`).
+
+**Example Interaction**:
 ```
 Waking up....
 Welcome to Memoraxx!
@@ -58,106 +91,53 @@ Memoraxx is thinking...
 Artificial Intelligence (AI) is the simulation of human intelligence in machines...
 -------------------
 [Memoraxx: brain active...]
-[Sat Jul 26 00:51:23 2025, took 1.234s]
+[Sat Jul 26 02:45:00 2025, took 2.41715s, CPU usage: 123.456 ms]
 
-> What are its applications?
+> What's its history?
 Memoraxx is thinking...
 --- AI Response ---
-Building on our previous discussion about AI, its applications include...
+Building on our discussion about AI, its history began in the 1950s...
 -------------------
 [Memoraxx: brain active...]
-[Sat Jul 26 00:51:25 2025, took 1.456s]
+[Sat Jul 26 02:45:15 2025, took 2.83422s, CPU usage: 134.789 ms]
 
-> clear
-Memory cleared.
+> quite
+[Memoraxx: shutting down...]
+Exiting. Goodbye!
 ```
 
-## Memory Capabilities
-The client maintains a conversation history using a `std::deque` to store up to `max_memory_size` (default: 5) prompt-response pairs. These are included in API requests to provide context, enabling coherent and context-aware responses. Interactions can be persisted to `memory.json` for continuity across sessions. Use the `clear` command to reset memory.
+## Features
 
-**Example Memory File (`memory.json`):**
-```json
-[
-  {
-    "prompt": "What is AI?",
-    "response": "Artificial Intelligence (AI) is the simulation of human intelligence..."
-  },
-  {
-    "prompt": "What are its applications?",
-    "response": "Building on our previous discussion about AI, its applications include..."
-  }
-]
-```
+- **Memory System**: Stores up to 5 interactions in `memory.json` for context-aware responses across sessions.
+- **Performance Monitoring**: Reports CPU usage (`getrusage`) and response time for each query.
+- **Error Handling**: Robust cURL and JSON parsing with timeouts and HTTP status checks.
+- **User Experience**: Loading animations, command suggestions, and graceful shutdown (Ctrl+C).
 
-<details>
-<summary>Key Code Highlights</summary>
+## Development
 
-**Memory Structure and Context Building:**
-```cpp
-struct Interaction {
-    std::string prompt;
-    std::string response;
-};
+### Branches
+- **main**: Stable branch with memory persistence and CPU metrics.
+- **optimize-algorithm**: Experimental branch exploring performance optimizations (e.g., CPU usage metrics).
 
-std::string build_context(const std::string& current_prompt) {
-    std::string context = "You are a highly knowledgeable and friendly AI assistant. "
-                         "Use the following conversation history for context:\n\n";
-    for (const auto& interaction : memory) {
-        context += "User: " + interaction.prompt + "\nAssistant: " + interaction.response + "\n\n";
-    }
-    context += "User: " + current_prompt + "\nAssistant:";
-    return context;
-}
-```
+### Contributing
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/your-feature`).
+3. Commit changes (`git commit -m 'Add your feature'`).
+4. Push to the branch (`git push origin feature/your-feature`).
+5. Open a pull request.
 
-**JSON Request with Context:**
-```cpp
-std::string full_prompt = build_context(prompt);
-json json_payload = {
-    {"model", model_name},
-    {"prompt", full_prompt},
-    {"stream", false}
-};
-```
+### Known Issues
+- GPU usage measurement is not implemented (planned for future releases).
+- `memory.json` is plain text; encryption is recommended for sensitive data.
 
-**Memory Persistence:**
-```cpp
-void save_memory() {
-    if (memory_file.empty()) return;
-    json memory_json = json::array();
-    for (const auto& interaction : memory) {
-        memory_json.push_back({
-            {"prompt", interaction.prompt},
-            {"response", interaction.response}
-        });
-    }
-    std::ofstream ofs(memory_file);
-    ofs << memory_json.dump(2);
-}
-```
+## Acknowledgments
+- **Meta AI**: For the Llama 3.2 model.
+- **Ollama**: For the local model server.
+- **nlohmann/json**: For robust JSON handling.
+- **libcurl**: For HTTP communication.
 
-**Error Handling Pattern:**
-```cpp
-std::string response = llama.completion(prompt);
-if (response.find("Error:") == 0) {
-    std::cerr << response << std::endl;
-}
-```
+## License
+Apache 2.0 License. See [LICENSE](LICENSE) for details.
 
-**Performance Metrics:**
-```cpp
-auto start_time = std::chrono::high_resolution_clock::now();
-std::string response = llama.completion(prompt);
-auto end_time = std::chrono::high_resolution_clock::now();
-std::chrono::duration<double> duration = end_time - start_time;
-```
-
-</details>
-
-## Notes
-- **Performance**: Tune `max_memory_size` based on API token limits to avoid truncation.
-- **Security**: `memory.json` is plain text; consider encryption for sensitive data.
-- **Extensibility**: Add features like memory summarization or keyword-based context filtering.
-
-**Author:** [Niladri Das](https://security.googlecloudcommunity.com/members/niladridas-404568)  
-**License:** Apache 2.0
+## Author
+Niladri Das
