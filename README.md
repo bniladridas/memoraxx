@@ -127,7 +127,7 @@ docker run -it memoraxx
    ```bash
    ./build.sh
    ```
-   
+
    Or manually:
    ```bash
    mkdir build && cd build

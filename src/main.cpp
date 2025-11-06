@@ -70,21 +70,21 @@ struct Interaction {
 // Compute Levenshtein distance for fuzzy matching (space-optimized)
 int levenshtein_distance(const std::string& s1, const std::string& s2) {
     size_t len1 = s1.size(), len2 = s2.size();
-    
+
     // Ensure s1 is the shorter string for space optimization
     if (len1 > len2) {
         return levenshtein_distance(s2, s1);
     }
-    
+
     std::vector<int> prev_row(len1 + 1);
     for (size_t i = 0; i <= len1; ++i) {
         prev_row[i] = i;
     }
-    
+
     for (size_t j = 1; j <= len2; ++j) {
         int prev_val = prev_row[0];
         prev_row[0] = j;
-        
+
         for (size_t i = 1; i <= len1; ++i) {
             int temp = prev_row[i];
             int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
@@ -92,7 +92,7 @@ int levenshtein_distance(const std::string& s1, const std::string& s2) {
             prev_val = temp;
         }
     }
-    
+
     return prev_row[len1];
 }
 
@@ -305,7 +305,7 @@ int main() {
                 std::string name;
                 std::function<void()> action;
             };
-            
+
             std::vector<Command> commands = {
                 {"exit", [&]() {
                     std::cout << "[memoraxx: shutting down";
@@ -333,7 +333,7 @@ int main() {
             // Find the best matching command
             int min_distance = INT_MAX;
             int best_command_index = -1;
-            
+
             for (size_t i = 0; i < commands.size(); ++i) {
                 int distance = levenshtein_distance(input_lower, commands[i].name);
                 if (distance < min_distance) {
@@ -356,10 +356,10 @@ int main() {
 
             // Get response with context
             auto start_time = std::chrono::high_resolution_clock::now();
-            
+
             // Get CPU usage before operation
             double cpu_before = get_cpu_time();
-            
+
             std::cout << "\rmemoraxx is thinking" << std::flush;
             std::atomic<bool> done{false};
             std::thread loader([&done]() {

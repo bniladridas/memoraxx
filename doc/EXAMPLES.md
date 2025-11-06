@@ -59,7 +59,7 @@ int main() {
 int main() {
     LlamaStack llama;
     std::vector<std::string> prompts = {"Hello", "How are you?"};
-    
+
     for (const auto& prompt : prompts) {
         std::string response = llama.completion(prompt);
         std::cout << "Q: " << prompt << "\nA: " << response << "\n---" << std::endl;

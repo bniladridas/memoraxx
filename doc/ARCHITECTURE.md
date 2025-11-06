@@ -86,7 +86,7 @@ double cpu_usage = (cpu_after - cpu_before) * 1000.0; // ms
 
 // Timing
 auto start = std::chrono::high_resolution_clock::now();
-// ... 
+// ...
 auto end = std::chrono::high_resolution_clock::now();
 double duration = std::chrono::duration<double>(end - start).count();
 ```
