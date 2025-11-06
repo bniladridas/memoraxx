@@ -1,10 +1,11 @@
+---
 name: ci
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -22,7 +23,9 @@ jobs:
       - name: Lint YAML
         run: yamllint .github/workflows/ci.yml
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev
       - name: Set up CMake
         uses: lukka/get-cmake@latest
         with:
@@ -48,4 +51,3 @@ jobs:
           context: .
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/${{ github.repository }}:latest
-

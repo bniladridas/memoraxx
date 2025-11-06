@@ -15,14 +15,13 @@ memoraxx is a lightweight, terminal-based application designed to interact with 
 - **User-Friendly Interface**: Supports commands like `exit`, `quit`, and `clear` with fuzzy matching for typos (e.g., `quite` → `quit`).
 - **Robust JSON Handling**: Uses `nlohmann/json` for reliable API communication.
 
-The project is actively developed on the `main` branch. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
-
 ## Documentation
 
 - [API Reference](doc/API.md)
 - [Architecture](doc/ARCHITECTURE.md)
 - [Examples](doc/EXAMPLES.md)
 - [Docker Setup](doc/DOCKER.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## Requirements
 
@@ -194,29 +193,6 @@ Exiting. Goodbye!
 ### Branches
 - **main**: Stable branch with memory persistence and CPU metrics.
 
-### Conventional Commits
-This project enforces conventional commit standards for clean and consistent commit messages.
-
-- Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`, `perf:`, `ci:`, `build:`, `revert:`
-- First line must be lowercase and ≤30 characters.
-- To enable validation, copy the hook: `cp scripts/commit-msg .git/hooks/ && chmod +x .git/hooks/commit-msg`
-- To rewrite messages, use `scripts/rewrite_msg.sh`
-
-### Pre-commit Hooks
-The project uses pre-commit hooks for code quality checks.
-
-- Install pre-commit: `pip install pre-commit`
-- Install hooks: `pre-commit install`
-- Run on all files: `pre-commit run --all-files`
-- Hooks include: trailing whitespace, YAML linting, file size checks
-
-### Contributing
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/your-feature`).
-3. Commit changes (`git commit -m 'Add your feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
-
 ### Known Issues
 - GPU usage measurement is not implemented (planned for future releases).
 - `memory.json` is plain text; encryption is recommended for sensitive data.
@@ -240,6 +216,3 @@ The app stores up to 5 recent interactions in `memory.json` for context-aware re
 
 ## License
 Apache 2.0 License. See [LICENSE](LICENSE) for details.
-
-## Author
-Niladri Das
