@@ -12,7 +12,7 @@ find_package(CURL REQUIRED)
 find_package(nlohmann_json 3.10 REQUIRED)
 
 # Add executable
-add_executable(memoraxx main.cpp)
+add_executable(memoraxx src/main.cpp)
 
 # Link libraries
 target_link_libraries(memoraxx PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)
