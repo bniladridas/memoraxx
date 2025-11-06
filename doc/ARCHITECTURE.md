@@ -207,7 +207,7 @@ The project uses GitHub Actions for automated testing and building.
 - **Workflow File**: `.github/workflows/ci.yml`
 - **Environment**: Ubuntu latest
 - **Triggers**: Push and pull requests to `main` branch
-- **Validation**: YAML syntax is validated using yamllint in CI
+- **Validation**: YAML syntax is validated using yamllint in CI; manual validation can be done with `python3 -c "import yaml; yaml.safe_load(open('file.yml')); print('Valid')"`
 - **Steps**:
   1. Checkout code
   2. Lint YAML files with yamllint
