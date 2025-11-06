@@ -198,6 +198,41 @@ target_link_libraries(memoraxx PRIVATE CURL::libcurl nlohmann_json::nlohmann_jso
 - nlohmann/json: JSON processing
 - CMake: Build system
 
+## CI/CD
+
+### GitHub Actions Workflow
+
+The project uses GitHub Actions for automated testing and building.
+
+- **Workflow File**: `.github/workflows/ci.yml`
+- **Environment**: Ubuntu latest
+- **Triggers**: Push and pull requests to `main` branch
+- **Steps**:
+  1. Checkout code
+  2. Install dependencies (libcurl4-openssl-dev, nlohmann-json3-dev)
+  3. Set up CMake
+  4. Configure and build project
+  5. Run end-to-end tests
+
+### Build Scripts
+
+- **`build.sh`**: Automates the build process using CMake
+- **`e2e.sh`**: Runs comprehensive tests including build verification and integration tests with Ollama
+
+## Infrastructure Requirements
+
+### Local Development
+
+- **Ollama Server**: Must be running locally on `http://localhost:11434`
+- **Model**: llama3.2 (or compatible Llama model)
+- **Dependencies**: libcurl, nlohmann/json (installed via apt on Ubuntu)
+
+### Deployment
+
+- Self-contained executable
+- No external services required beyond Ollama
+- Cross-platform (Linux/macOS/Windows via CMake)
+
 ## Testing
 
 ### Current
