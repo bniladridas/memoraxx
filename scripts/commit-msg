@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Conventional commit hook: enforce lowercase, ≤30 chars, starts with type
+
+COMMIT_MSG_FILE=$1
+FIRST_LINE=$(head -n1 "$COMMIT_MSG_FILE")
+
+# Check if starts with conventional type
+if ! echo "$FIRST_LINE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: '; then
+    echo "Error: Commit message must start with a conventional type (e.g., feat:, fix:)"
+    exit 1
+fi
+
+# Check length ≤30 chars
+if [ ${#FIRST_LINE} -gt 30 ]; then
+    echo "Error: First line must be ≤30 characters"
+    exit 1
+fi
+
+# Check lowercase (except for type and scope)
+# Allow uppercase in type and scope, but rest lowercase
+if echo "$FIRST_LINE" | grep -q '[A-Z]'; then
+    echo "Error: Commit message must be lowercase (except type/scope)"
+    exit 1
+fi
+
+exit 0
