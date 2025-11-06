@@ -15,7 +15,7 @@ memoraxx is a lightweight, terminal-based application designed to interact with 
 - **User-Friendly Interface**: Supports commands like `exit`, `quit`, and `clear` with fuzzy matching for typos (e.g., `quite` → `quit`).
 - **Robust JSON Handling**: Uses `nlohmann/json` for reliable API communication.
 
-The project is actively developed on the `main` branch, with an `optimize-algorithm` branch exploring performance enhancements. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
+The project is actively developed on the `main` branch. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
 
 ## Installation
 
@@ -117,7 +117,6 @@ Exiting. Goodbye!
 
 ### Branches
 - **main**: Stable branch with memory persistence and CPU metrics.
-- **optimize-algorithm**: Experimental branch exploring performance optimizations (e.g., CPU usage metrics).
 
 ### Conventional Commits
 This project enforces conventional commit standards for clean and consistent commit messages.
