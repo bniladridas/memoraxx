@@ -119,6 +119,14 @@ Exiting. Goodbye!
 - **main**: Stable branch with memory persistence and CPU metrics.
 - **optimize-algorithm**: Experimental branch exploring performance optimizations (e.g., CPU usage metrics).
 
+### Conventional Commits
+This project enforces conventional commit standards for clean and consistent commit messages.
+
+- Commit messages must start with a type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`, `perf:`, `ci:`, `build:`, `revert:`
+- First line must be lowercase and ≤30 characters.
+- To enable validation, copy the hook: `cp scripts/commit-msg .git/hooks/ && chmod +x .git/hooks/commit-msg`
+- To rewrite messages, use `scripts/rewrite_msg.sh`
+
 ### Contributing
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feature/your-feature`).
