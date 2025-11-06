@@ -4,7 +4,7 @@ A C++ terminal client for interacting with a local Llama-based AI language model
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bniladridas/memoraxx)
-[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/std/the-standard)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)](https://isocpp.org/std/the-standard)
 
 ## Overview
 
@@ -25,7 +25,7 @@ The project is actively developed on the `main` branch. Contributions are welcom
   - `libcurl` (e.g., `libcurl4-openssl-dev` on Ubuntu, included in macOS SDK)
   - `nlohmann/json` (version ≥3.10)
   - CMake (version ≥3.10)
-  - C++17 compiler (e.g., AppleClang, GCC)
+  - C++20 compiler (e.g., AppleClang, GCC)
   - Ollama with Llama 3.2 model
 - **Optional**: `libomp` for future parallel processing (not currently required)
 
