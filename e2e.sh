@@ -44,9 +44,8 @@ else
     exit 1
 fi
 
-# Test help/version (if implemented)
-# For now, just check executable runs
-if ./build/memoraxx --help 2>/dev/null || true; then
+# Test executable exists and is executable
+if [ -x "./build/memoraxx" ]; then
     echo "✓ Executable test passed"
 else
     echo "✗ Executable test failed"
