@@ -17,9 +17,8 @@ memoraxx is a lightweight, terminal-based application designed to interact with 
 
 The project is actively developed on the `main` branch. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
 
-## Installation
+## Requirements
 
-### Prerequisites
 - **OS**: macOS (tested on Sequoia with AppleClang 16.0.0), Linux (Ubuntu 20.04+), Windows (10+)
 - **Dependencies**:
   - `libcurl` (e.g., `libcurl4-openssl-dev` on Ubuntu, included in macOS SDK)
@@ -29,11 +28,53 @@ The project is actively developed on the `main` branch. Contributions are welcom
   - Ollama with Llama 3.2 model
 - **Optional**: `libomp` for future parallel processing (not currently required)
 
-### Setup
+## Installation
+
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/bniladridas/memoraxx.git
    cd memoraxx
+   ```
+
+2. **Install Dependencies**:
+
+   **macOS**:
+   ```bash
+   brew install curl nlohmann-json
+   ```
+
+   **Ubuntu**:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install libcurl4-openssl-dev nlohmann-json3-dev cmake build-essential
+   ```
+
+   **Windows (using vcpkg)**:
+   ```bash
+   vcpkg install curl nlohmann-json
+   ```
+   Ensure vcpkg is integrated with Visual Studio.
+
+3. **Install Ollama**:
+   Follow instructions at [ollama.ai](https://ollama.ai) and pull the Llama 3.2 model:
+   ```bash
+   ollama pull llama3.2
+   ```
+
+4. **Build the Project**:
+   Use the build script:
+   ```bash
+   ./build.sh
+   ```
+
+   > [!NOTE]
+   > The build script automates the CMake configuration and build process.
+
+   Or manually:
+   ```bash
+   mkdir build && cd build
+   cmake ..
+   cmake --build .
    ```
 
 2. **Install Dependencies** (macOS):
@@ -148,6 +189,17 @@ This project enforces conventional commit standards for clean and consistent com
 ### Known Issues
 - GPU usage measurement is not implemented (planned for future releases).
 - `memory.json` is plain text; encryption is recommended for sensitive data.
+
+## Frequently Asked Questions
+
+### How do I install Ollama?
+Follow the instructions at [ollama.ai](https://ollama.ai) to install Ollama, then run `ollama pull llama3.2` to get the model.
+
+### How do I build the project?
+Use `./build.sh` or follow the manual steps in Installation.
+
+### What is the memory system?
+The app stores up to 5 recent interactions in `memory.json` for context-aware responses.
 
 ## Acknowledgments
 - **Meta AI**: For the Llama 3.2 model.
