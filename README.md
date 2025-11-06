@@ -77,6 +77,12 @@ The project is actively developed on the `main` branch. Contributions are welcom
    cmake --build .
    ```
 
+5. **Run Tests**:
+   ```bash
+   ./e2e.sh
+   ```
+   This runs end-to-end tests, including build verification and integration tests (requires Ollama running).
+
 2. **Install Dependencies** (macOS):
    ```bash
    brew install curl nlohmann-json
