@@ -17,6 +17,12 @@ memoraxx is a lightweight, terminal-based application designed to interact with 
 
 The project is actively developed on the `main` branch. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
 
+## Documentation
+
+- [API Reference](doc/API.md)
+- [Architecture](doc/ARCHITECTURE.md)
+- [Examples](doc/EXAMPLES.md)
+
 ## Requirements
 
 - **OS**: macOS (tested on Sequoia with AppleClang 16.0.0), Linux (Ubuntu 20.04+), Windows (10+)
