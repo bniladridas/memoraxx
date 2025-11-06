@@ -1,21 +1,21 @@
-# Memoraxx
+# memoraxx
 
 A C++ terminal client for interacting with a local Llama-based AI language model server, featuring context-aware conversations with memory persistence and performance metrics.
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bniladridas/Memoraxx)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bniladridas/memoraxx)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/std/the-standard)
 
 ## Overview
 
-Memoraxx is a lightweight, terminal-based application designed to interact with a local Llama 3.2 model server (via Ollama). It sends user prompts to the server, maintains conversational context using a memory system, and reports CPU usage and response times for each interaction. Key features include:
+memoraxx is a lightweight, terminal-based application designed to interact with a local Llama 3.2 model server (via Ollama). It sends user prompts to the server, maintains conversational context using a memory system, and reports CPU usage and response times for each interaction. Key features include:
 
 - **Context-Aware Responses**: Stores up to 5 recent prompt-response pairs in memory, persisted to `memory.json` for cross-session continuity.
 - **Performance Metrics**: Measures CPU usage (`getrusage`) and response duration for each query.
 - **User-Friendly Interface**: Supports commands like `exit`, `quit`, and `clear` with fuzzy matching for typos (e.g., `quite` → `quit`).
 - **Robust JSON Handling**: Uses `nlohmann/json` for reliable API communication.
 
-The project is actively developed on the `main` branch, with an `optimize-algorithm` branch exploring performance enhancements. Contributions are welcome at [github.com/bniladridas/Memoraxx](https://github.com/bniladridas/Memoraxx).
+The project is actively developed on the `main` branch, with an `optimize-algorithm` branch exploring performance enhancements. Contributions are welcome at [github.com/bniladridas/memoraxx](https://github.com/bniladridas/memoraxx).
 
 ## Installation
 
@@ -32,8 +32,8 @@ The project is actively developed on the `main` branch, with an `optimize-algori
 ### Setup
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/bniladridas/Memoraxx.git
-   cd Memoraxx
+   git clone https://github.com/bniladridas/memoraxx.git
+   cd memoraxx
    ```
 
 2. **Install Dependencies** (macOS):
@@ -67,9 +67,9 @@ The project is actively developed on the `main` branch, with an `optimize-algori
    ollama serve
    ```
 
-2. **Run Memoraxx**:
+2. **Run memoraxx**:
    ```bash
-   ./build/Memoraxx
+   ./build/memoraxx
    ```
 
 3. **Interact**:
@@ -82,27 +82,27 @@ The project is actively developed on the `main` branch, with an `optimize-algori
 **Example Interaction**:
 ```
 Waking up....
-Welcome to Memoraxx!
+Welcome to memoraxx!
 Ask anything. Type 'exit', 'quit', or 'clear' to manage memory.
 
 > What is AI?
-Memoraxx is thinking...
+memoraxx is thinking...
 --- AI Response ---
 Artificial Intelligence (AI) is the simulation of human intelligence in machines...
 -------------------
-[Memoraxx: brain active...]
+[memoraxx: brain active...]
 [Sat Jul 26 02:45:00 2025, took 2.41715s, CPU usage: 123.456 ms]
 
 > What's its history?
-Memoraxx is thinking...
+memoraxx is thinking...
 --- AI Response ---
 Building on our discussion about AI, its history began in the 1950s...
 -------------------
-[Memoraxx: brain active...]
+[memoraxx: brain active...]
 [Sat Jul 26 02:45:15 2025, took 2.83422s, CPU usage: 134.789 ms]
 
 > quite
-[Memoraxx: shutting down...]
+[memoraxx: shutting down...]
 Exiting. Goodbye!
 ```
 

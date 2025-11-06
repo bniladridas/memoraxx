@@ -258,7 +258,7 @@ int main() {
             std::cout << "\nShutdown requested. Exiting.\n";
             return 0;
         }
-        std::cout << "\n\033[1;32mWelcome to Memoraxx!\033[0m\n";
+        std::cout << "\n\033[1;32mWelcome to memoraxx!\033[0m\n";
         std::cout << "Ask anything. Type 'exit', 'quit', or 'clear' to manage memory.\n";
 
         std::string user_message;
@@ -282,7 +282,7 @@ int main() {
             
             std::vector<Command> commands = {
                 {"exit", [&]() {
-                    std::cout << "[Memoraxx: shutting down";
+                    std::cout << "[memoraxx: shutting down";
                     for (int i = 0; i < 3; ++i) {
                         std::cout << "." << std::flush;
                         std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -291,7 +291,7 @@ int main() {
                     g_shutdown = true;
                 }},
                 {"quit", [&]() {
-                    std::cout << "[Memoraxx: shutting down";
+                    std::cout << "[memoraxx: shutting down";
                     for (int i = 0; i < 3; ++i) {
                         std::cout << "." << std::flush;
                         std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -335,12 +335,12 @@ int main() {
             struct rusage usage_before, usage_after;
             getrusage(RUSAGE_SELF, &usage_before);
             
-            std::cout << "\rMemoraxx is thinking" << std::flush;
+            std::cout << "\rmemoraxx is thinking" << std::flush;
             std::atomic<bool> done{false};
             std::thread loader([&done]() {
                 int count = 0;
                 while (!done) {
-                    std::cout << "\rMemoraxx is thinking" << std::string(count % 4, '.') << std::flush;
+                    std::cout << "\rmemoraxx is thinking" << std::string(count % 4, '.') << std::flush;
                     std::this_thread::sleep_for(std::chrono::milliseconds(400));
                     count++;
                 }
@@ -368,7 +368,7 @@ int main() {
                                (usage_after.ru_stime.tv_usec - usage_before.ru_stime.tv_usec)) / 1000.0;
 
             std::cout << "\n--- AI Response ---\n" << response << "\n-------------------\n";
-            std::cout << "[Memoraxx: brain active";
+            std::cout << "[memoraxx: brain active";
             for (int i = 0; i < 3; ++i) {
                 std::cout << "." << std::flush;
                 std::this_thread::sleep_for(std::chrono::milliseconds(300));
