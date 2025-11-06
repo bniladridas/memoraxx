@@ -207,12 +207,15 @@ The project uses GitHub Actions for automated testing and building.
 - **Workflow File**: `.github/workflows/ci.yml`
 - **Environment**: Ubuntu latest
 - **Triggers**: Push and pull requests to `main` branch
+- **Validation**: YAML syntax is validated using yamllint in CI
 - **Steps**:
   1. Checkout code
-  2. Install dependencies (libcurl4-openssl-dev, nlohmann-json3-dev)
-  3. Set up CMake
-  4. Configure and build project
-  5. Run end-to-end tests
+  2. Lint YAML files with yamllint
+  3. Install dependencies (libcurl4-openssl-dev, nlohmann-json3-dev)
+  4. Set up CMake
+  5. Configure and build project
+  6. Run end-to-end tests
+  7. Build and push Docker image to GHCR (on push)
 
 ### Build Scripts
 

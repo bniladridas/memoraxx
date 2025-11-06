@@ -202,6 +202,14 @@ This project enforces conventional commit standards for clean and consistent com
 - To enable validation, copy the hook: `cp scripts/commit-msg .git/hooks/ && chmod +x .git/hooks/commit-msg`
 - To rewrite messages, use `scripts/rewrite_msg.sh`
 
+### Pre-commit Hooks
+The project uses pre-commit hooks for code quality checks.
+
+- Install pre-commit: `pip install pre-commit`
+- Install hooks: `pre-commit install`
+- Run on all files: `pre-commit run --all-files`
+- Hooks include: trailing whitespace, YAML linting, file size checks
+
 ### Contributing
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feature/your-feature`).
