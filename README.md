@@ -54,6 +54,12 @@ The project is actively developed on the `main` branch. Contributions are welcom
    ```
 
 4. **Build the Project**:
+   Use the build script:
+   ```bash
+   ./build.sh
+   ```
+   
+   Or manually:
    ```bash
    mkdir build && cd build
    cmake ..
