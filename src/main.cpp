@@ -11,12 +11,38 @@
 #include <deque>
 #include <fstream>
 #include <algorithm> // For std::min, std::transform
+#ifndef _WIN32
 #include <sys/resource.h> // For CPU usage
+#endif
 #include <functional> // For std::function
 #include <vector> // For std::vector
 #include <climits> // For INT_MAX
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 using json = nlohmann::json;
+
+// Cross-platform CPU time function
+double get_cpu_time() {
+#ifdef _WIN32
+    FILETIME creation, exit, kernel, user;
+    if (GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user)) {
+        ULARGE_INTEGER k, u;
+        k.LowPart = kernel.dwLowDateTime;
+        k.HighPart = kernel.dwHighDateTime;
+        u.LowPart = user.dwLowDateTime;
+        u.HighPart = user.dwHighDateTime;
+        return (k.QuadPart + u.QuadPart) / 10000000.0; // seconds
+    }
+    return 0.0;
+#else
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_utime.tv_sec + usage.ru_stime.tv_sec + (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1000000.0;
+#endif
+}
 
 // Global flag for graceful shutdown
 std::atomic<bool> g_shutdown{false};
@@ -332,8 +358,7 @@ int main() {
             auto start_time = std::chrono::high_resolution_clock::now();
             
             // Get CPU usage before operation
-            struct rusage usage_before, usage_after;
-            getrusage(RUSAGE_SELF, &usage_before);
+            double cpu_before = get_cpu_time();
             
             std::cout << "\rmemoraxx is thinking" << std::flush;
             std::atomic<bool> done{false};
@@ -352,7 +377,7 @@ int main() {
             std::cout << "\r" << std::string(20, ' ') << "\r"; // Clear line
 
             // Get CPU usage after operation
-            getrusage(RUSAGE_SELF, &usage_after);
+            double cpu_after = get_cpu_time();
 
             // Output results
             auto end_time = std::chrono::high_resolution_clock::now();
@@ -362,10 +387,7 @@ int main() {
             current_time = current_time.substr(0, current_time.length() - 1);
 
             // Calculate CPU usage difference for this operation
-            double cpu_usage = ((usage_after.ru_utime.tv_sec - usage_before.ru_utime.tv_sec) + 
-                               (usage_after.ru_stime.tv_sec - usage_before.ru_stime.tv_sec)) * 1000.0 +
-                              ((usage_after.ru_utime.tv_usec - usage_before.ru_utime.tv_usec) + 
-                               (usage_after.ru_stime.tv_usec - usage_before.ru_stime.tv_usec)) / 1000.0;
+            double cpu_usage = (cpu_after - cpu_before) * 1000.0;
 
             std::cout << "\n--- AI Response ---\n" << response << "\n-------------------\n";
             std::cout << "[memoraxx: brain active";

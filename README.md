@@ -20,12 +20,12 @@ The project is actively developed on the `main` branch. Contributions are welcom
 ## Installation
 
 ### Prerequisites
-- **OS**: macOS (tested on Sequoia with AppleClang 16.0.0), Linux (Ubuntu 20.04+)
+- **OS**: macOS (tested on Sequoia with AppleClang 16.0.0), Linux (Ubuntu 20.04+), Windows (10+)
 - **Dependencies**:
   - `libcurl` (e.g., `libcurl4-openssl-dev` on Ubuntu, included in macOS SDK)
   - `nlohmann/json` (version ≥3.10)
   - CMake (version ≥3.10)
-  - C++20 compiler (e.g., AppleClang, GCC)
+  - C++20 compiler (e.g., AppleClang, GCC, MSVC)
   - Ollama with Llama 3.2 model
 - **Optional**: `libomp` for future parallel processing (not currently required)
 
@@ -46,6 +46,12 @@ The project is actively developed on the `main` branch. Contributions are welcom
    sudo apt-get update
    sudo apt-get install libcurl4-openssl-dev nlohmann-json3-dev cmake build-essential
    ```
+
+   On Windows (using vcpkg):
+   ```bash
+   vcpkg install curl nlohmann-json
+   ```
+   Ensure vcpkg is integrated with Visual Studio.
 
 3. **Install Ollama**:
    Follow instructions at [ollama.ai](https://ollama.ai) and pull the Llama 3.2 model:
