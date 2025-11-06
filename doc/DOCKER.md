@@ -9,11 +9,24 @@ This document provides instructions for building and running memoraxx using Dock
 
 ## Building the Image
 
+### Local Build
+
 ```bash
 docker build -t memoraxx .
 ```
 
 This creates a Docker image based on Ubuntu 22.04 with all necessary dependencies installed and the application built.
+
+### Pull from GitHub Container Registry
+
+Pre-built images are available on GHCR:
+
+```bash
+docker pull ghcr.io/bniladridas/memoraxx:latest
+docker run -it ghcr.io/bniladridas/memoraxx:latest
+```
+
+Images are automatically built and pushed on every push to the `main` branch.
 
 ## Running the Container
 
