@@ -16,32 +16,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev
-    - name: Set up CMake
-      uses: lukka/get-cmake@latest
-      with:
-        useCloudCache: false
-    - name: Remove CMake cache
-      run: rm -rf build
-    - name: Configure CMake
-      run: cmake -S . -B build
-    - name: Build
-      run: cmake --build build
-     - name: Run E2E tests
-       run: ./e2e.sh
-     - name: Log in to GHCR
-       if: github.event_name == 'push'
-       uses: docker/login-action@v3
-       with:
-         registry: ghcr.io
-         username: ${{ github.actor }}
-         password: ${{ secrets.GITHUB_TOKEN }}
-     - name: Build and push Docker image
-       uses: docker/build-push-action@v5
-       with:
-         context: .
-         push: ${{ github.event_name == 'push' }}
-         tags: ghcr.io/${{ github.repository }}:latest
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev
+      - name: Set up CMake
+        uses: lukka/get-cmake@latest
+        with:
+          useCloudCache: false
+      - name: Remove CMake cache
+        run: rm -rf build
+      - name: Configure CMake
+        run: cmake -S . -B build
+      - name: Build
+        run: cmake --build build
+      - name: Run E2E tests
+        run: ./e2e.sh
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: ghcr.io/${{ github.repository }}:latest
 
