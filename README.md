@@ -22,6 +22,7 @@ The project is actively developed on the `main` branch. Contributions are welcom
 - [API Reference](doc/API.md)
 - [Architecture](doc/ARCHITECTURE.md)
 - [Examples](doc/EXAMPLES.md)
+- [Docker Setup](doc/DOCKER.md)
 
 ## Requirements
 
@@ -76,12 +77,22 @@ The project is actively developed on the `main` branch. Contributions are welcom
    > [!NOTE]
    > The build script automates the CMake configuration and build process.
 
-   Or manually:
-   ```bash
-   mkdir build && cd build
-   cmake ..
-   cmake --build .
-   ```
+    Or manually:
+    ```bash
+    mkdir build && cd build
+    cmake ..
+    cmake --build .
+    ```
+
+### Using Docker
+
+To build and run using Docker:
+```bash
+docker build -t memoraxx .
+docker run -it memoraxx
+```
+> [!NOTE]
+> This builds the application inside a container. For full functionality, Ollama must be running on the host or in a linked container.
 
 5. **Run Tests**:
    ```bash

@@ -1,0 +1,10 @@
+build/
+*.log
+.git/
+.gitignore
+README.md
+doc/
+scripts/
+.github/
+*.md
+!Dockerfile
