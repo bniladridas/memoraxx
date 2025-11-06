@@ -1,40 +1,45 @@
 # Architecture
 
-How I structured this thing. Kept it simple - one main class that talks to Ollama and tracks some basic metrics.
+memoraxx is a C++ terminal client for interacting with local Llama AI models via Ollama, featuring memory persistence and performance monitoring.
 
-## System Flow
+## System Overview
 
 ```
-Client ──HTTP/JSON──► Ollama:11434 ──► Llama3.2
-  │                                        │
-  └── Performance Monitor ◄───────────────┘
-      (CPU, Time, Memory)
+Terminal ──HTTP/JSON──► Ollama Server ──► Llama Model
+    │                           │
+    └── Memory System ◄─────────┘
+        (JSON persistence)
 ```
 
-## Component Design
+## Core Components
 
-### 1. LlamaStack Class
+### LlamaStack Class
 
-**Purpose**: Core API client for Ollama communication
+**Purpose**: Manages AI model interactions with conversation memory.
 
-**Responsibilities**:
-- HTTP request/response handling
-- JSON payload construction and parsing
-- cURL session management
-- Error handling and recovery
+**Key Features**:
+- HTTP communication with Ollama
+- JSON request/response handling
+- Conversation context storage
+- Cross-platform performance monitoring
 
-**Key Methods**:
+**Interface**:
 ```cpp
 class LlamaStack {
 private:
-    std::string base_url;        // API endpoint
-    CURL* curl;                  // cURL handle
-    bool use_gpu;               // GPU preference flag
+    std::string base_url;
+    std::string model_name;
+    CURL* curl;
+    std::deque<Interaction> memory;
+    size_t max_memory_size;
+    std::string memory_file;
 
 public:
-    LlamaStack(bool use_gpu);   // Constructor with GPU option
-    ~LlamaStack();              // Cleanup cURL resources
+    LlamaStack(const std::string& url, const std::string& model,
+               size_t mem_size, const std::string& mem_file);
+    ~LlamaStack();
     std::string completion(const std::string& prompt);
+    void clear_memory();
 };
 ```
 
@@ -64,39 +69,36 @@ public:
 }
 ```
 
-### 3. Performance Monitoring System
+### Performance Monitoring
 
-**Metrics Collected**:
-- **CPU Usage**: User + system time via `getrusage()`
-- **Wall Clock Time**: High-resolution timing with `std::chrono`
-- **Memory Usage**: Available through `rusage.ru_maxrss`
-- **Power Estimation**: Calculated heuristic based on CPU usage
+**Metrics**:
+- CPU time (cross-platform)
+- Response duration
+- Memory usage (future)
 
 **Implementation**:
 ```cpp
-// Timing measurement
-auto start_time = std::chrono::high_resolution_clock::now();
+// Cross-platform CPU measurement
+double cpu_before = get_cpu_time();
 // ... API call ...
-auto end_time = std::chrono::high_resolution_clock::now();
-std::chrono::duration<double> duration = end_time - start_time;
+double cpu_after = get_cpu_time();
+double cpu_usage = (cpu_after - cpu_before) * 1000.0; // ms
 
-// Resource usage
-struct rusage usage;
-getrusage(RUSAGE_SELF, &usage);
-double cpu_usage = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000.0;
+// Timing
+auto start = std::chrono::high_resolution_clock::now();
+// ... 
+auto end = std::chrono::high_resolution_clock::now();
+double duration = std::chrono::duration<double>(end - start).count();
 ```
 
-### 4. Error Handling Strategy
+### Error Handling
 
-**Three-Layer Error Handling**:
+**Layers**:
+1. Network (cURL errors)
+2. JSON parsing
+3. Application logic
 
-1. **cURL Level**: Network and HTTP errors
-```cpp
-CURLcode res = curl_easy_perform(curl);
-if (res != CURLE_OK) {
-    return "cURL error: " + std::string(curl_easy_strerror(res));
-}
-```
+**Strategy**: Return descriptive error strings for user feedback.
 
 2. **JSON Level**: Parsing and structure validation
 ```cpp
@@ -119,183 +121,91 @@ if (!curl) {
 
 ## Data Flow
 
-### Request Flow
-1. **User Input** → Terminal input capture
-2. **Prompt Construction** → Add system context
-3. **JSON Serialization** → Create API payload
-4. **HTTP Request** → POST to Ollama server
-5. **Response Handling** → Parse JSON response
-6. **Output Formatting** → Display with metrics
+### Request Processing
+1. User input → Fuzzy command matching
+2. Build context from memory
+3. JSON payload → HTTP POST to Ollama
+4. Parse response → Store in memory
+5. Display with performance metrics
 
-### Response Processing
-```cpp
-// Input: Raw HTTP response
-std::string response_buffer;
-
-// Processing: JSON extraction
-json response_json = json::parse(response_buffer);
-std::string ai_response = response_json["response"];
-
-// Output: Formatted display with metrics
-std::cout << "- Response: " << ai_response << std::endl;
-```
+### Memory Management
+- Deque stores last N interactions
+- JSON serialization for persistence
+- Automatic cleanup on overflow
 
 ## Memory Management
 
 ### RAII Pattern
-- **cURL Handle**: Automatic cleanup in destructor
-- **JSON Objects**: Stack-allocated, automatic cleanup
-- **String Buffers**: STL containers with automatic memory management
+- cURL handles: Automatic cleanup
+- STL containers: Automatic memory management
+- Memory persistence: JSON file I/O
 
-### Resource Lifecycle
-```cpp
-LlamaStack::LlamaStack() {
-    curl = curl_easy_init();  // Acquire resource
-    if (!curl) throw std::runtime_error("Init failed");
-}
-
-LlamaStack::~LlamaStack() {
-    if (curl) {
-        curl_easy_cleanup(curl);  // Release resource
-    }
-}
-```
+### Conversation Memory
+- Deque for efficient FIFO storage
+- Configurable size limit
+- File-based persistence
 
 ## Threading Model
 
-**Current**: Single-threaded synchronous design
-- Simple and predictable
-- Suitable for terminal interaction
-- No race conditions or synchronization complexity
+Single-threaded with async UI elements (loading animations).
 
-**Future Considerations**:
-- Async request handling for better UX
-- Background performance monitoring
-- Concurrent model loading
+Future: Potential async HTTP requests.
 
-## Security Considerations
+## Security
 
-### Current Security Measures
-- **Local-only communication**: No external network access
-- **Input validation**: JSON structure validation
-- **Resource limits**: Bounded by system resources
-- **Error containment**: Graceful error handling without crashes
+- Localhost-only communication
+- Input sanitization
+- JSON validation
+- Graceful error handling
 
-### Security Boundaries
-```
-User Input → JSON Validation → HTTP Client → Local Server
-     ↓              ↓              ↓            ↓
- Sanitized → Structured → Encrypted → Processed
-```
+## Performance
 
-## Performance Characteristics
+### Latency
+- Network: ~1-5ms
+- JSON: ~0.1-1ms
+- Model inference: 1-10s
+- Total: Model-dependent
 
-### Latency Profile
-- **Network**: ~1-5ms (localhost)
-- **JSON Processing**: ~0.1-1ms
-- **Model Inference**: 1-10 seconds (model dependent)
-- **Output Formatting**: ~0.1ms
+### Memory
+- Base: ~1-5MB
+- Per request: ~10-100KB
+- Memory file: Persistent storage
 
-### Memory Usage
-- **Base Application**: ~1-5MB
-- **cURL Overhead**: ~100KB
-- **JSON Processing**: ~10-100KB per request
-- **Response Buffering**: Variable (response size dependent)
+## Future Extensions
 
-### Scalability Limits
-- **Single Request**: Limited by model inference time
-- **Memory**: Limited by available system RAM
-- **CPU**: Single-threaded, one core utilization
-
-## Extension Points
-
-### 1. Model Support
-```cpp
-// Current: Hardcoded model
-{"model", "llama3.2"}
-
-// Future: Configurable models
-{"model", config.model_name}
-```
-
-### 2. GPU Integration
-```cpp
-// Placeholder for GPU metrics
-int gpu_usage = 0;
-
-// Future: CUDA/ROCm integration
-int gpu_usage = get_gpu_utilization();
-```
-
-### 3. Streaming Support
-```cpp
-// Current: Batch responses
-{"stream", false}
-
-// Future: Real-time streaming
-{"stream", true}
-// + WebSocket or SSE handling
-```
-
-### 4. Configuration System
-```cpp
-// Future: External configuration
-struct Config {
-    std::string api_endpoint;
-    std::string model_name;
-    bool enable_gpu;
-    int timeout_seconds;
-};
-```
+- Configurable models
+- GPU acceleration
+- Streaming responses
+- External configuration files
 
 ## Build System
 
 ### CMake Configuration
 ```cmake
-# Minimum requirements
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_CXX_STANDARD 11)
+project(memoraxx LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
 
-# Dependencies
 find_package(CURL REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
+find_package(nlohmann_json 3.10 REQUIRED)
 
-# Linking
-target_link_libraries(LlamaTerminalApp 
-    PRIVATE 
-    CURL::libcurl 
-    nlohmann_json::nlohmann_json
-)
+add_executable(memoraxx src/main.cpp)
+target_link_libraries(memoraxx PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)
 ```
 
-### Dependency Management
-- **System Libraries**: libcurl (HTTP client)
-- **Header-only Libraries**: nlohmann/json (JSON processing)
-- **Build Tools**: CMake (cross-platform builds)
+### Dependencies
+- libcurl: HTTP client
+- nlohmann/json: JSON processing
+- CMake: Build system
 
-## Testing Strategy
+## Testing
 
-### Current Testing
-- **Manual Testing**: Interactive terminal usage
-- **Build Verification**: CMake compilation success
-- **Basic Functionality**: Single request/response cycle
+### Current
+- Manual testing via terminal
+- Build verification
+- Basic functionality checks
 
-### Future Testing Framework
-```cpp
-// Unit tests for core components
-TEST(LlamaStackTest, BasicCompletion) {
-    LlamaStack llama;
-    std::string response = llama.completion("test");
-    ASSERT_FALSE(response.empty());
-}
-
-// Integration tests
-TEST(IntegrationTest, EndToEndFlow) {
-    // Test full request/response cycle
-}
-
-// Performance tests
-TEST(PerformanceTest, ResponseTime) {
-    // Measure and validate response times
-}
-```
+### Future
+- Unit tests for LlamaStack
+- Integration tests
+- Performance benchmarks
