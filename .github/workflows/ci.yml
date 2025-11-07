@@ -18,12 +18,11 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
 
     steps:
       - uses: actions/checkout@v2
       - name: Install yamllint
-        run: apt-get update && apt-get install -y yamllint
+        run: sudo apt-get update && sudo apt-get install -y yamllint
       - name: Lint YAML
         run: yamllint .github/workflows/ci.yml
       - name: Cache apt packages
@@ -35,8 +34,8 @@ jobs:
             ${{ runner.os }}-apt-
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev unzip build-essential
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev unzip build-essential
       - name: Set up CMake
         uses: lukka/get-cmake@latest
         with:
