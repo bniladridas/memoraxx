@@ -25,6 +25,13 @@ jobs:
         run: pip install yamllint
       - name: Lint YAML
         run: yamllint .github/workflows/ci.yml
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/ci.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -85,6 +92,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/ci.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
       - name: Install dependencies
         run: |
           sudo apt-get update
