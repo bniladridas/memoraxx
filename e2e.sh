@@ -16,7 +16,20 @@ if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
 
     # Test basic interaction
     echo "Testing basic AI interaction..."
-    timeout 30s bash -c 'echo "Hello, test message" | ./build/memoraxx' > test_output.txt 2>&1 &
+    if command -v gtimeout >/dev/null 2>&1; then
+        TIMEOUT_CMD="gtimeout"
+    elif command -v timeout >/dev/null 2>&1; then
+        TIMEOUT_CMD="timeout"
+    else
+        echo "Warning: timeout command not found. Running without timeout."
+        TIMEOUT_CMD=""
+    fi
+
+    if [ -n "$TIMEOUT_CMD" ]; then
+        $TIMEOUT_CMD 30s bash -c 'echo "Hello, test message" | ./build/memoraxx' > test_output.txt 2>&1 &
+    else
+        bash -c 'echo "Hello, test message" | ./build/memoraxx' > test_output.txt 2>&1 &
+    fi
     TEST_PID=$!
     sleep 5
     kill $TEST_PID 2>/dev/null || true
@@ -63,7 +76,7 @@ cat > test_config.json <<EOF
 }
 EOF
 
-timeout 10s bash -c 'echo "exit" | ./build/memoraxx' > config_test.txt 2>&1 &
+bash -c 'echo "exit" | ./build/memoraxx' > config_test.txt 2>&1 &
 CONFIG_PID=$!
 wait $CONFIG_PID 2>/dev/null || true
 
@@ -79,7 +92,7 @@ rm test_config.json config_test.txt
 
 # Test commands
 echo "Testing commands..."
-timeout 10s bash -c 'echo -e "test message\nclear\nexit" | ./build/memoraxx' > command_test.txt 2>&1 &
+bash -c 'echo -e "test message\nclear\nexit" | ./build/memoraxx' > command_test.txt 2>&1 &
 CMD_PID=$!
 wait $CMD_PID 2>/dev/null || true
 
