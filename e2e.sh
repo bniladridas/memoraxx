@@ -52,4 +52,45 @@ else
     exit 1
 fi
 
+# Test config loading
+echo "Testing config loading..."
+cat > test_config.json <<EOF
+{
+    "base_url": "http://localhost:11434/api/generate",
+    "model": "llama3.2",
+    "max_tokens": 2048,
+    "memory_file": "test_memory.json"
+}
+EOF
+
+timeout 10s bash -c 'echo "exit" | ./build/memoraxx' > config_test.txt 2>&1 &
+CONFIG_PID=$!
+wait $CONFIG_PID 2>/dev/null || true
+
+if [ -f "test_memory.json" ]; then
+    echo "✓ Config and memory persistence test passed"
+    rm test_memory.json
+else
+    echo "✗ Config and memory persistence test failed"
+    exit 1
+fi
+
+rm test_config.json config_test.txt
+
+# Test commands
+echo "Testing commands..."
+timeout 10s bash -c 'echo -e "test message\nclear\nexit" | ./build/memoraxx' > command_test.txt 2>&1 &
+CMD_PID=$!
+wait $CMD_PID 2>/dev/null || true
+
+if grep -q "Memory cleared" command_test.txt; then
+    echo "✓ Command test passed"
+else
+    echo "✗ Command test failed"
+    cat command_test.txt
+    exit 1
+fi
+
+rm command_test.txt
+
 echo "All E2E tests completed successfully!"
