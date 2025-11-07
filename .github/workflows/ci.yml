@@ -117,7 +117,8 @@ jobs:
         run: |
           echo "Automated release for ${{ github.ref_name }}." > changelog.txt
           echo "" >> changelog.txt
-          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo '1970-01-01')" >> changelog.txt
+          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD~1 \
+            2>/dev/null || echo '1970-01-01')" >> changelog.txt
           echo "" >> changelog.txt
           echo "- Built on Ubuntu with CMake." >> changelog.txt
       - name: Create Release
