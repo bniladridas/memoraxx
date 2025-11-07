@@ -65,19 +65,13 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* use
 struct Interaction {
     std::string prompt;
     std::string response;
-    int token_count;
+    size_t token_count;
 };
 
-// Improved token counter (word-based approximation).
-// Estimates tokens as word count * 1.3 to account for subword tokenization.
-// This is still a rough estimate and may not accurately reflect the tokenizer used by the LLM.
-// This discrepancy could lead to either under-utilizing the context window or, more critically,
-// exceeding the model's maximum token limit, which might cause API requests to fail.
-// For production use, consider integrating a proper tokenizer library.
-int count_tokens(const std::string& text) {
-    std::istringstream iss(text);
-    int word_count = std::distance(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{});
-    return static_cast<int>(word_count * 1.3);
+// Simple token counter (rough estimate: ~4 characters per token)
+size_t count_tokens(const std::string& text) {
+    const size_t chars_per_token_estimate = 4;
+    return text.size() / chars_per_token_estimate;
 }
 
 // Compute Levenshtein distance for fuzzy matching (space-optimized)
@@ -115,8 +109,8 @@ private:
     std::string model_name;
     CURL* curl;
     std::deque<Interaction> memory; // Memory to store recent interactions
-    size_t max_tokens; // Maximum tokens to store
-    size_t total_tokens; // Current total tokens
+    size_t max_tokens; // Maximum number of tokens to store
+    size_t total_tokens; // Current total tokens in memory
     std::string memory_file; // File for persistent memory (optional)
 
     // Initialize a new CURL handle for thread safety
@@ -128,6 +122,16 @@ private:
         curl_easy_setopt(handle, CURLOPT_TIMEOUT, 30L); // 30 seconds max for entire request
         curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, 5L); // 5 seconds max to connect
         return handle;
+    }
+
+    // Add interaction to memory and trim if necessary
+    void add_interaction(const std::string& prompt, const std::string& response, size_t tokens) {
+        memory.push_back({prompt, response, tokens});
+        total_tokens += tokens;
+        while (total_tokens > max_tokens && !memory.empty()) {
+            total_tokens -= memory.front().token_count;
+            memory.pop_front();
+        }
     }
 
     // Build context from memory
@@ -174,16 +178,15 @@ private:
             total_tokens = 0;
             for (const auto& item : memory_json) {
                 if (item.contains("prompt") && item.contains("response")) {
-                    // Store prompt and response to avoid repeated JSON lookups
-                    const auto prompt = item["prompt"].get<std::string>();
-                    const auto response = item["response"].get<std::string>();
-                    int tokens = item.contains("token_count") ? item["token_count"].get<int>() : count_tokens(prompt + " " + response);
-                    if (total_tokens + tokens <= max_tokens) {
-                        memory.push_back({prompt, response, tokens});
-                        total_tokens += tokens;
+                    std::string prompt = item["prompt"].get<std::string>();
+                    std::string response = item["response"].get<std::string>();
+                    size_t tokens;
+                    if (item.contains("token_count")) {
+                        tokens = item["token_count"].get<size_t>();
                     } else {
-                        break; // Stop loading if would exceed
+                        tokens = count_tokens(prompt + response);
                     }
+                    add_interaction(prompt, response, tokens);
                 }
             }
         } catch (const std::exception& e) {
@@ -193,10 +196,10 @@ private:
 
 public:
     LlamaStack(const std::string& url = "http://localhost:11434/api/generate",
-                const std::string& model = "llama3.2",
-                size_t max_tokens = 4096,
-                const std::string& mem_file = "")
-        : base_url(url), model_name(model), max_tokens(max_tokens), total_tokens(0), memory_file(mem_file) {
+               const std::string& model = "llama3.2",
+               size_t max_tokens_param = 4096,
+               const std::string& mem_file = "")
+        : base_url(url), model_name(model), max_tokens(max_tokens_param), total_tokens(0), memory_file(mem_file) {
         curl = init_curl();
         if (!memory_file.empty()) {
             load_memory();
@@ -286,13 +289,8 @@ public:
             std::string result = response_json["response"].get<std::string>();
 
             // Store interaction in memory
-            int tokens = count_tokens(prompt + " " + result);
-            memory.push_back({prompt, result, tokens});
-            total_tokens += tokens;
-            while (total_tokens > max_tokens && !memory.empty()) {
-                total_tokens -= memory.front().token_count;
-                memory.pop_front();
-            }
+            size_t tokens = count_tokens(prompt + result);
+            add_interaction(prompt, result, tokens);
             save_memory();
 
             curl_slist_free_all(headers);
@@ -311,12 +309,32 @@ public:
 };
 
 int main() {
+    // Load config or use defaults
+    std::string base_url = "http://localhost:11434/api/generate";
+    std::string model = "llama3.2";
+    size_t max_tokens = 4096;
+    std::string memory_file = "memory.json";
+
+    try {
+        std::ifstream ifs("config.json");
+        if (ifs.is_open()) {
+            json config;
+            ifs >> config;
+            if (config.contains("base_url")) base_url = config["base_url"].get<std::string>();
+            if (config.contains("model")) model = config["model"].get<std::string>();
+            if (config.contains("max_tokens")) max_tokens = config["max_tokens"].get<size_t>();
+            if (config.contains("memory_file")) memory_file = config["memory_file"].get<std::string>();
+        }
+    } catch (const std::exception& e) {
+        // Use defaults if config invalid
+        std::cerr << "Warning: Could not load or parse config.json: " << e.what() << ". Using default values.\n";
+    }
+
+    // Initialize with memory file for persistence
+    LlamaStack llama(base_url, model, max_tokens, memory_file);
     std::signal(SIGINT, signal_handler);
 
     try {
-        // Initialize with memory file for persistence
-        LlamaStack llama("http://localhost:11434/api/generate", "llama3.2", 4096, "memory.json");
-
         // Startup animation
         std::cout << "Waking up";
         for (int i = 0; i < 4 && !g_shutdown; ++i) {
