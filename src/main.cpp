@@ -65,7 +65,20 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* use
 struct Interaction {
     std::string prompt;
     std::string response;
+    int token_count;
 };
+
+// Improved token counter (word-based approximation).
+// Estimates tokens as word count * 1.3 to account for subword tokenization.
+// This is still a rough estimate and may not accurately reflect the tokenizer used by the LLM.
+// This discrepancy could lead to either under-utilizing the context window or, more critically,
+// exceeding the model's maximum token limit, which might cause API requests to fail.
+// For production use, consider integrating a proper tokenizer library.
+int count_tokens(const std::string& text) {
+    std::istringstream iss(text);
+    int word_count = std::distance(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{});
+    return static_cast<int>(word_count * 1.3);
+}
 
 // Compute Levenshtein distance for fuzzy matching (space-optimized)
 int levenshtein_distance(const std::string& s1, const std::string& s2) {
@@ -102,7 +115,8 @@ private:
     std::string model_name;
     CURL* curl;
     std::deque<Interaction> memory; // Memory to store recent interactions
-    size_t max_memory_size; // Maximum number of interactions to store
+    size_t max_tokens; // Maximum tokens to store
+    size_t total_tokens; // Current total tokens
     std::string memory_file; // File for persistent memory (optional)
 
     // Initialize a new CURL handle for thread safety
@@ -135,7 +149,8 @@ private:
             for (const auto& interaction : memory) {
                 memory_json.push_back({
                     {"prompt", interaction.prompt},
-                    {"response", interaction.response}
+                    {"response", interaction.response},
+                    {"token_count", interaction.token_count}
                 });
             }
             std::ofstream ofs(memory_file);
@@ -156,11 +171,18 @@ private:
             ifs >> memory_json;
             ifs.close();
             memory.clear();
+            total_tokens = 0;
             for (const auto& item : memory_json) {
                 if (item.contains("prompt") && item.contains("response")) {
-                    memory.push_back({item["prompt"].get<std::string>(), item["response"].get<std::string>()});
-                    if (memory.size() >= max_memory_size) {
-                        memory.pop_front();
+                    // Store prompt and response to avoid repeated JSON lookups
+                    const auto prompt = item["prompt"].get<std::string>();
+                    const auto response = item["response"].get<std::string>();
+                    int tokens = item.contains("token_count") ? item["token_count"].get<int>() : count_tokens(prompt + " " + response);
+                    if (total_tokens + tokens <= max_tokens) {
+                        memory.push_back({prompt, response, tokens});
+                        total_tokens += tokens;
+                    } else {
+                        break; // Stop loading if would exceed
                     }
                 }
             }
@@ -171,10 +193,10 @@ private:
 
 public:
     LlamaStack(const std::string& url = "http://localhost:11434/api/generate",
-               const std::string& model = "llama3.2",
-               size_t memory_size = 5,
-               const std::string& mem_file = "")
-        : base_url(url), model_name(model), max_memory_size(memory_size), memory_file(mem_file) {
+                const std::string& model = "llama3.2",
+                size_t max_tokens = 4096,
+                const std::string& mem_file = "")
+        : base_url(url), model_name(model), max_tokens(max_tokens), total_tokens(0), memory_file(mem_file) {
         curl = init_curl();
         if (!memory_file.empty()) {
             load_memory();
@@ -264,8 +286,11 @@ public:
             std::string result = response_json["response"].get<std::string>();
 
             // Store interaction in memory
-            memory.push_back({prompt, result});
-            if (memory.size() > max_memory_size) {
+            int tokens = count_tokens(prompt + " " + result);
+            memory.push_back({prompt, result, tokens});
+            total_tokens += tokens;
+            while (total_tokens > max_tokens && !memory.empty()) {
+                total_tokens -= memory.front().token_count;
                 memory.pop_front();
             }
             save_memory();
@@ -290,7 +315,7 @@ int main() {
 
     try {
         // Initialize with memory file for persistence
-        LlamaStack llama("http://localhost:11434/api/generate", "llama3.2", 5, "memory.json");
+        LlamaStack llama("http://localhost:11434/api/generate", "llama3.2", 4096, "memory.json");
 
         // Startup animation
         std::cout << "Waking up";
