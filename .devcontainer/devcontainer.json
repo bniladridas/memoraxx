@@ -1,0 +1,14 @@
+{
+    "name": "memoraxx",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ],
+    "settings": {
+        "cmake.configureOnOpen": true
+    }
+}
