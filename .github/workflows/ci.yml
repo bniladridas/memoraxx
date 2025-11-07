@@ -47,12 +47,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-       - name: Build and push Docker image
-         uses: docker/build-push-action@v5
-         with:
-           context: .
-           push: ${{ github.event_name == 'push' }}
-           tags: ghcr.io/${{ github.repository }}:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: ghcr.io/${{ github.repository }}:latest
 
   deploy:
     if: github.event_name == 'push'
@@ -76,4 +76,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
