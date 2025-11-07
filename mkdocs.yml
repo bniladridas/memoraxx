@@ -1,0 +1,9 @@
+site_name: memoraxx
+nav:
+  - Home: README.md
+  - API Reference: doc/API.md
+  - Architecture: doc/ARCHITECTURE.md
+  - Docker Setup: doc/DOCKER.md
+  - Examples: doc/EXAMPLES.md
+  - Contributing: CONTRIBUTING.md
+theme: readthedocs
