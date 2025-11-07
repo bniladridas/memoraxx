@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install yamllint
-        run: pip install yamllint
+        run: apt-get update && apt-get install -y yamllint
       - name: Lint YAML
         run: yamllint .github/workflows/ci.yml
       - name: Cache apt packages
