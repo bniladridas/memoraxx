@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Rewrite commit message: lowercase, truncate to 30 chars, ensure conventional
+# Rewrite commit message: lowercase, truncate to 40 chars, ensure conventional
 
 read -r FIRST_LINE
 
@@ -15,9 +15,9 @@ else
     NEW_MSG="feat: $(echo "$FIRST_LINE" | tr '[:upper:]' '[:lower:]')"
 fi
 
-# Truncate to 30 chars
-if [ ${#NEW_MSG} -gt 30 ]; then
-    NEW_MSG="${NEW_MSG:0:27}..."
+# Truncate to 40 chars
+if [ ${#NEW_MSG} -gt 40 ]; then
+    NEW_MSG="${NEW_MSG:0:37}..."
 fi
 
 echo "$NEW_MSG"
