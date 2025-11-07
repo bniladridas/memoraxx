@@ -69,6 +69,13 @@ struct Interaction {
     int token_count;
 };
 
+// Structure for tools
+struct Tool {
+    std::string name;
+    std::string description;
+    json parameters;
+};
+
 // Improved token counter (word-based approximation).
 // Estimates tokens as word count * 1.3 to account for subword tokenization.
 // This is still a rough estimate and may not accurately reflect the tokenizer used by the LLM.
@@ -119,6 +126,7 @@ private:
     size_t max_tokens; // Maximum tokens to store
     size_t total_tokens; // Current total tokens
     std::string memory_file; // File for persistent memory (optional)
+    std::vector<Tool> tools; // Available tools for agent
 
     // Initialize a new CURL handle for thread safety
     CURL* init_curl() {
@@ -133,8 +141,19 @@ private:
 
     // Build context from memory
     std::string build_context(const std::string& current_prompt) {
-        std::string context = "You are a highly knowledgeable and friendly AI assistant. "
-                             "Use the following conversation history for context:\n\n";
+        // Build tools JSON
+        json tools_json = json::array();
+        for (const auto& tool : tools) {
+            tools_json.push_back({
+                {"name", tool.name},
+                {"description", tool.description},
+                {"parameters", tool.parameters}
+            });
+        }
+        std::string tools_str = "You have access to the following tools:\n" + tools_json.dump(2) + "\n\nTo use a tool, respond with a JSON object like: {\"tool_call\": {\"name\": \"tool_name\", \"arguments\": {...}}}\n\n";
+
+        std::string context = tools_str + "You are a highly knowledgeable and friendly AI assistant. Use tools when appropriate.\n\n"
+                              "Use the following conversation history for context:\n\n";
         for (const auto& interaction : memory) {
             context += "User: " + interaction.prompt + "\nAssistant: " + interaction.response + "\n\n";
         }
@@ -160,6 +179,24 @@ private:
         } catch (const std::exception& e) {
             std::cerr << "Failed to save memory: " << e.what() << std::endl;
         }
+    }
+
+    // Execute a tool
+    std::string execute_tool(const std::string& name, const json& args) {
+        if (name == "run_command") {
+            if (!args.contains("command")) return "Error: Missing command argument";
+            std::string cmd = args["command"].get<std::string>();
+            FILE* pipe = popen(cmd.c_str(), "r");
+            if (!pipe) return "Error: Failed to run command";
+            char buffer[128];
+            std::string result;
+            while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+                result += buffer;
+            }
+            pclose(pipe);
+            return "Command output:\n" + result;
+        }
+        return "Unknown tool: " + name;
     }
 
     // Load memory from file
@@ -202,6 +239,19 @@ public:
         if (!memory_file.empty()) {
             load_memory();
         }
+        // Initialize tools
+        Tool run_cmd = {
+            "run_command",
+            "Run a shell command and return the output",
+            json{
+                {"type", "object"},
+                {"properties", {
+                    {"command", json{{"type", "string"}, {"description", "The shell command to run"}}}
+                }},
+                {"required", json::array({"command"})}
+            }
+        };
+        tools.push_back(run_cmd);
     }
 
     ~LlamaStack() {
@@ -285,6 +335,19 @@ public:
             }
 
             std::string result = response_json["response"].get<std::string>();
+
+            // Check for tool call
+            try {
+                json response_parsed = json::parse(result);
+                if (response_parsed.contains("tool_call")) {
+                    std::string tool_name = response_parsed["tool_call"]["name"];
+                    json tool_args = response_parsed["tool_call"]["arguments"];
+                    std::string tool_output = execute_tool(tool_name, tool_args);
+                    result = tool_output;
+                }
+            } catch (const json::exception&) {
+                // Not a tool call, use as is
+            }
 
             // Store interaction in memory
             int tokens = count_tokens(prompt + " " + result);
