@@ -10,6 +10,8 @@ on:
 permissions:
   contents: read
   packages: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -45,9 +47,33 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+       - name: Build and push Docker image
+         uses: docker/build-push-action@v5
+         with:
+           context: .
+           push: ${{ github.event_name == 'push' }}
+           tags: ghcr.io/${{ github.repository }}:latest
+
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          context: .
-          push: ${{ github.event_name == 'push' }}
-          tags: ghcr.io/${{ github.repository }}:latest
+          python-version: '3.x'
+      - name: Install MkDocs
+        run: pip install mkdocs
+      - name: Build docs
+        run: mkdocs build
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
