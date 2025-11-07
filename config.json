@@ -1,0 +1,1 @@
+{"base_url": "http://localhost:11434/api/generate","model": "llama3.2","max_tokens": 4096,"memory_file": "memory.json"}
