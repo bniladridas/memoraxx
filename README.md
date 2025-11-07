@@ -12,6 +12,7 @@ memoraxx is a lightweight, terminal-based application designed to interact with 
 
 - **Context-Aware Responses**: Stores up to 5 recent prompt-response pairs in memory, persisted to `memory.json` for cross-session continuity.
 - **Performance Metrics**: Measures CPU usage (`getrusage`) and response duration for each query.
+- **Agent Capabilities**: Supports tool calling for executing shell commands and extending functionality autonomously.
 - **User-Friendly Interface**: Supports commands like `exit`, `quit`, and `clear` with fuzzy matching for typos (e.g., `quite` → `quit`).
 - **Robust JSON Handling**: Uses `nlohmann/json` for reliable API communication.
 
@@ -149,10 +150,11 @@ docker run -it memoraxx
 
 3. **Interact**:
    - Enter prompts at the `>` cursor.
-   - Use commands:
-     - `exit` or `quit`: Exit the application.
-     - `clear`: Reset conversation memory.
-   - Typos are handled (e.g., `quite` → `quit`).
+  - Use commands:
+      - `exit` or `quit`: Exit the application.
+      - `clear`: Reset conversation memory.
+    - Typos are handled (e.g., `quite` → `quit`).
+  - **Agent Mode**: Ask the AI to use tools, e.g., "Run the command 'ls'" to execute shell commands.
 
 **Example Interaction**:
 ```
@@ -176,10 +178,20 @@ Building on our discussion about AI, its history began in the 1950s...
 [memoraxx: brain active...]
 [Sat Jul 26 02:45:15 2025, took 2.83422s, CPU usage: 134.789 ms]
 
-> quite
-[memoraxx: shutting down...]
-Exiting. Goodbye!
-```
+ > Run the command 'echo hello'
+ memoraxx is thinking...
+ --- AI Response ---
+ Command output:
+ hello
+
+ -------------------
+ [memoraxx: brain active...]
+ [Sat Jul 26 02:45:30 2025, took 1.5s, CPU usage: 100.0 ms]
+
+ > quite
+ [memoraxx: shutting down...]
+ Exiting. Goodbye!
+ ```
 
 ## Configuration
 
