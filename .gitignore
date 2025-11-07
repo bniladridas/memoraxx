@@ -64,3 +64,6 @@ config.local.*
 
 # Runtime generated files
 memory.json
+
+# MkDocs site
+site/
