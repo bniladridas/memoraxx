@@ -334,13 +334,11 @@ int main() {
         std::cerr << "Warning: Failed to load config.json: " << e.what() << ". Using default settings." << std::endl;
     }
 
-    // Initialize with memory file for persistence
-    LlamaStack llama(base_url, model, max_tokens, memory_file);
     std::signal(SIGINT, signal_handler);
 
     try {
         // Initialize with memory file for persistence
-        LlamaStack llama("http://localhost:11434/api/generate", "llama3.2", 4096, "memory.json");
+        LlamaStack llama(base_url, model, max_tokens, memory_file);
 
         // Startup animation
         std::cout << "Waking up";

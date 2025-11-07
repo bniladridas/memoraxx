@@ -181,6 +181,25 @@ Building on our discussion about AI, its history began in the 1950s...
 Exiting. Goodbye!
 ```
 
+## Configuration
+
+memoraxx can be configured via a `config.json` file in the project root. If the file is missing, default values are used.
+
+Example `config.json`:
+```json
+{
+    "base_url": "http://localhost:11434/api/generate",
+    "model": "llama3.2",
+    "max_tokens": 4096,
+    "memory_file": "memory.json"
+}
+```
+
+- `base_url`: URL of the Ollama API endpoint.
+- `model`: The model name to use (e.g., "llama3.2").
+- `max_tokens`: Maximum number of tokens to store in memory.
+- `memory_file`: Path to the file for persisting conversation memory.
+
 ## Features
 
 - **Memory System**: Stores up to 5 interactions in `memory.json` for context-aware responses across sessions.

@@ -76,7 +76,9 @@ cat > test_config.json <<EOF
 }
 EOF
 
-bash -c 'echo "exit" | ./build/memoraxx' > config_test.txt 2>&1 &
+cp test_config.json config.json
+
+bash -c 'echo -e "test prompt\nexit" | ./build/memoraxx' > config_test.txt 2>&1 &
 CONFIG_PID=$!
 wait $CONFIG_PID 2>/dev/null || true
 
@@ -88,7 +90,7 @@ else
     exit 1
 fi
 
-rm test_config.json config_test.txt
+rm test_config.json config.json config_test.txt
 
 # Test commands
 echo "Testing commands..."
