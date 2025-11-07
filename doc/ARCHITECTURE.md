@@ -6,9 +6,11 @@ memoraxx is a C++ terminal client for interacting with local Llama AI models via
 
 ```
 Terminal ──HTTP/JSON──► Ollama Server ──► Llama Model
-    │                           │
-    └── Memory System ◄─────────┘
-        (JSON persistence)
+    │                           │              │
+    ├── Memory System ◄─────────┘              │
+    │   (JSON persistence)                     │
+    └── Tool Execution ◄───────────────────────┘
+        (Agent capabilities)
 ```
 
 ## Core Components
@@ -123,10 +125,11 @@ if (!curl) {
 
 ### Request Processing
 1. User input → Fuzzy command matching
-2. Build context from memory
+2. Build context from memory (includes tool schemas)
 3. JSON payload → HTTP POST to Ollama
-4. Parse response → Store in memory
-5. Display with performance metrics
+4. Parse response → Check for tool calls → Execute tools if needed
+5. Store result in memory
+6. Display with performance metrics
 
 ### Memory Management
 - Deque stores last N interactions
@@ -171,12 +174,29 @@ Future: Potential async HTTP requests.
 - Per request: ~10-100KB
 - Memory file: Persistent storage
 
+## Agent Architecture
+
+### Tool System
+- **Schema Definition**: JSON-based tool descriptions with parameters
+- **Execution Engine**: Safe command execution with output capture
+- **Integration**: Embedded in conversation flow for autonomous actions
+
+### Current Tools
+- `run_command`: Shell command execution with result return
+
+### Future Tools
+- File operations
+- HTTP requests
+- Data processing
+
 ## Future Extensions
 
 - Configurable models
 - GPU acceleration
 - Streaming responses
 - External configuration files
+- Multi-turn agent loops
+- Custom tool plugins
 
 ## Build System
 

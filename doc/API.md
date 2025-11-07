@@ -43,11 +43,12 @@ Cleans up cURL resources and saves memory to file.
 std::string completion(const std::string& prompt)
 ```
 
-Sends a prompt to the AI model and returns the response.
+Sends a prompt to the AI model and returns the response. Includes tool calling support for agent functionality.
 
 - **Parameters**: `prompt` - Input text
-- **Returns**: AI response or error message
-- **Errors**: cURL failures, JSON parse errors, missing response field
+- **Returns**: AI response, tool output, or error message
+- **Features**: Parses tool calls in JSON format and executes them
+- **Errors**: cURL failures, JSON parse errors, missing response field, tool execution errors
 
 ```cpp
 LlamaStack llama;
@@ -64,6 +65,26 @@ void clear_memory()
 ```
 
 Clears stored conversation memory.
+
+### Agent Methods
+
+#### execute_tool
+
+```cpp
+std::string execute_tool(const std::string& name, const json& args)
+```
+
+Executes a predefined tool based on name and arguments.
+
+- **Parameters**:
+  - `name`: Tool name (e.g., "run_command")
+  - `args`: JSON object with tool arguments
+- **Returns**: Tool execution result or error message
+
+Supported tools:
+- `run_command`: Executes a shell command
+  - Args: `{"command": "shell command string"}`
+  - Returns: Command output or error
 
 ## Ollama API Integration
 
