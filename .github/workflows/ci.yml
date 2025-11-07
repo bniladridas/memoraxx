@@ -16,15 +16,17 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
       - name: Install yamllint
         run: sudo apt-get update && sudo apt-get install -y yamllint
+
       - name: Lint YAML
         run: yamllint .github/workflows/ci.yml
+
       - name: Cache apt packages
         uses: actions/cache@v4
         with:
@@ -32,65 +34,86 @@ jobs:
           key: ${{ runner.os }}-apt-${{ hashFiles('**/ci.yml') }}
           restore-keys: |
             ${{ runner.os }}-apt-
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev unzip build-essential
+
       - name: Set up CMake
         uses: lukka/get-cmake@latest
         with:
           useCloudCache: false
+
       - name: Remove CMake cache
         run: rm -rf build
+
       - name: Configure CMake
         run: cmake -S . -B build
+
       - name: Build
         run: cmake --build build
+
       - name: Run E2E tests
         run: ./e2e.sh
+
+      # ---- Docker Logins ----
       - name: Log in to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GH_PAT }}
+
       - name: Log in to Docker Hub
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != ''
         uses: docker/login-action@v3
         with:
-          username: harpertoken
-          password: ${{ secrets.GH_PAT }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ---- Build & Push Image ----
       - name: Build and push Docker image
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            harpertoken/memoraxx:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME && format('docker.io/{0}/{1}:latest', secrets.DOCKERHUB_USERNAME, github.event.repository.name) || '' }}
+            ${{ secrets.DOCKERHUB_USERNAME && format('docker.io/{0}/{1}:{2}', secrets.DOCKERHUB_USERNAME, github.event.repository.name, github.sha) || '' }}
 
   deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
       - name: Install MkDocs
         run: pip install mkdocs
+
       - name: Build docs
         run: mkdocs build
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:
           enablement: true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -98,8 +121,10 @@ jobs:
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Cache apt packages
         uses: actions/cache@v4
         with:
@@ -107,27 +132,31 @@ jobs:
           key: ${{ runner.os }}-apt-${{ hashFiles('**/ci.yml') }}
           restore-keys: |
             ${{ runner.os }}-apt-
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev nlohmann-json3-dev
+
       - name: Set up CMake
         uses: lukka/get-cmake@latest
         with:
           useCloudCache: false
+
       - name: Build
         run: |
           mkdir build && cd build
           cmake ..
           cmake --build .
+
       - name: Generate changelog
         run: |
           echo "Automated release for ${{ github.ref_name }}." > changelog.txt
           echo "" >> changelog.txt
-          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD~1 \
-            2>/dev/null || echo '1970-01-01')" >> changelog.txt
+          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo '1970-01-01')" >> changelog.txt
           echo "" >> changelog.txt
           echo "- Built on Ubuntu with CMake." >> changelog.txt
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
