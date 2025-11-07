@@ -268,6 +268,30 @@ public:
 };
 
 int main() {
+    // Load config or use defaults
+    std::string base_url = "http://localhost:11434/api/generate";
+    std::string model = "llama3.2";
+    size_t max_tokens = 4096;
+    std::string memory_file = "memory.json";
+
+    try {
+        std::ifstream ifs("config.json");
+        if (ifs.is_open()) {
+            json config;
+            ifs >> config;
+            if (config.contains("base_url")) base_url = config["base_url"].get<std::string>();
+            if (config.contains("model")) model = config["model"].get<std::string>();
+            if (config.contains("max_tokens")) max_tokens = config["max_tokens"].get<size_t>();
+            if (config.contains("memory_file")) memory_file = config["memory_file"].get<std::string>();
+        }
+    } catch (const nlohmann::json::exception& e) {
+        std::cerr << "Warning: Failed to parse config.json: " << e.what() << ". Using default settings." << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: Failed to load config.json: " << e.what() << ". Using default settings." << std::endl;
+    }
+
+    // Initialize with memory file for persistence
+    LlamaStack llama(base_url, model, max_tokens, memory_file);
     std::signal(SIGINT, signal_handler);
 
     try {
